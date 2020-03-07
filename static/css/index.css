@@ -1,0 +1,11 @@
+.navbar {
+    background: #495060;
+}
+
+.navbar-header > span{
+    color: rosybrown;
+}
+
+#navbar ul > li{
+    cursor: pointer;
+}
