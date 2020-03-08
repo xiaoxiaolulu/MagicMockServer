@@ -12,7 +12,8 @@
     <script src="{% static 'js/xfzajax.js' %}"></script>
     <script src="{% static 'js/xfzalert.js' %}"></script>
     <script src="{% static 'js/message.js' %}"></script>
-    <script src="{% static 'js/index.js' %}"></script>
+    <script src="{% static 'js/project.js' %}"></script>
+    <script src="{% static 'js/api.js' %}"></script>
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -21,15 +22,17 @@
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
                     aria-expanded="false" aria-controls="navbar">
             </button>
-            <a href="{% url 'mock:project' %}" class="navbar-brand" style="color: rosybrown" title="首页"><span>Mock Server</span></a>
+            <a href="{% url 'mock:index' %}" class="navbar-brand" style="color: rosybrown" title="首页"><span>Mock Server</span></a>
         </div>
 
         <div id="navbar" class="navbar-collapse collapse">
-            <form class="navbar-form navbar-left" method="GET" action="">
+            <form class="navbar-form navbar-left search" method="GET" action="">
                 <div class="form-group">
-                    <input type="text" placeholder="搜索接口" name="api_name" value="" class="form-control">
+                    <label>
+                        <input type="text" placeholder="搜索接口" name="api_name" value="" class="form-control">
+                        <button type="submit" class="btn btn-info">检索</button>
+                    </label>
                 </div>
-                <button type="submit" class="btn btn-primary">检索</button>
             </form>
             <ul class="nav navbar-nav">
                 <li><a data-toggle="modal" data-target="#add_mock_api" title="添加mock接口">添加接口</a></li>
@@ -39,134 +42,199 @@
     </div>
 </nav>
 
-{# 模态框 #}
-<div class="modal fade" id="add_project" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h5 class="modal-title" id="myModalLabel">添加项目</h5>
+<div class="container" style="margin-top: 100px">
+    {% for project in projects %}
+        <h1 data-toggle="collapse" data-target="#collapse_project_{{ project.pk }}"
+            aria-controls="collapse_project_{{ project.pk }}"
+            style="cursor: pointer">{{ project.name }}
+            <small>&nbsp;&nbsp;{{ project.desc }}</small>
+        </h1>
+
+        <div id="collapse_project_{{ project.pk }}">
+        {% for interface in interfaces %}
+            {% if interface.project_id == project.pk %}
+                {% if interface.method|lower == 'post' %}
+                    <div class="block block_post">
+                    <span class="block-method block_method_post block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ interface.id }}'); make_editor('code_{{ interface.id }}')">POST</span>
+                {% elif interface.method|lower == 'get' %}
+                    <div class="block block_get">
+                    <span class="block-method block_method_get block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ interface.id }}'); make_editor('code_{{ interface.id }}')">GET</span>
+                {% elif interface.method|lower == 'put' %}
+                    <div class="block block_put">
+                    <span class="block-method block_method_put block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ interface.id }}'); make_editor('code_{{ interface.id }}')">PUT</span>
+                {% elif interface.method|lower == 'delete' %}
+                    <div class="block block_delete">
+                    <span class="block-method block_method_delete block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ interface.id }}'); make_editor('code_{{ interface.id }}')">DELETE</span>
+                {% endif %}
+
+            <span class="block-method block_url">{{ interface.url }}</span>
+            <span class="block-summary-description">{{ interface.name }}</span>
+            <button class="btn btn-info">Save</button>
+            <button class="btn btn-danger" style="margin-left: 5px">Delete</button>
             </div>
-            <form class="form-horizontal" role="form">
-                <div class="form-group">
-                    <label for="project_name" class="col-sm-2 control-label">项目名称</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="project_name" placeholder="项目名称">
-                    </div>
+                <div class="block_body collapse" id="collapse_api_{{ interface.id }}">
+                    <pre id="code_{{ interface.id }}" class="ace_editor" style="min-height: 400px">
+                        <textarea>
+                            {{ interface.body }}
+                        </textarea>
+                    </pre>
                 </div>
-                <div class="form-group">
-                    <label for="project_desc" class="col-sm-2 control-label">项目描述</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="project_desc" placeholder="项目描述">
-                    </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+    </div>
+
+    {# 模态框 #}
+    <div class="modal fade" id="add_project" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="myModalLabel">添加项目</h5>
                 </div>
-            </form>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" id="add-project-btn">提交更改</button>
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label for="project_name" class="col-sm-2 control-label">项目名称</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="project_name" placeholder="项目名称">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="project_desc" class="col-sm-2 control-label">项目描述</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="project_desc" placeholder="项目描述">
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="add-project-btn">提交更改</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="modal fade" id="add_mock_api" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h5 class="modal-title" id="myModalLabel">添加接口</h5>
-            </div>
-            <form class="form-horizontal" role="form">
-                <div class="form-group">
-                    <label for="api_name" class="col-sm-2 control-label">接口名称</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="api_name" placeholder="请输入接口名称">
-                    </div>
+    <div class="modal fade" id="add_mock_api" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="myModalLabel">添加接口</h5>
                 </div>
-                <div class="form-group">
-                    <label for="api_route" class="col-sm-2 control-label">请求路由</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="api_route" placeholder="请输入请求路由">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label for="api_name" class="col-sm-2 control-label">接口名称</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="api_name" placeholder="请输入接口名称">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="api_method" class="col-sm-2 control-label">请求类型</label>
-                    <div class="col-sm-9">
-                        <select class="form-control" id="api_method">
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                            <option value="PUT">PUT</option>
-                            <option value="DELETE">DELETE</option>
-                        </select>
+                    <div class="form-group">
+                        <label for="api_route" class="col-sm-2 control-label">请求路由</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="api_route" placeholder="请输入请求路由">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="api_method" class="col-sm-2 control-label">请求类型</label>
-                    <div class="col-sm-9">
-                        <select class="form-control" id="api_method">
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                            <option value="PUT">PUT</option>
-                            <option value="DELETE">DELETE</option>
-                        </select>
+                    <div class="form-group">
+                        <label for="api_method" class="col-sm-2 control-label">请求类型</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="api_method">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="api_project" class="col-sm-2 control-label">所属项目</label>
-                    <div class="col-sm-9">
-                        <select class="form-control" id="api_project">
-                            {% for p in project %}
-                                <option value="{{ p.pk }}">{{ p.name }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="form-group">
+                        <label for="api_project" class="col-sm-2 control-label">所属项目</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" id="api_project">
+                                {% for p in project %}
+                                    <option value="{{ p.pk }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="api_body" class="col-sm-2 control-label">请求参数</label>
-                    <div class=col-sm-9>
-                        <pre id="code" class="ace_editor" style="min-height:400px">
-                            <textarea class="ace_text-input"></textarea>
-                        </pre>
+                    <div class="form-group">
+                        <label for="api_body" class="col-sm-2 control-label">请求参数</label>
+                        <div class=col-sm-9>
+                            <pre id="code" class="ace_editor" style="min-height:400px">
+                                <label>
+                                    <textarea class="ace_text-input"></textarea>
+                                </label>
+                            </pre>
+                        </div>
                     </div>
+                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="add-api-btn">提交更改</button>
                 </div>
-            </form>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" id="add-project-btn">提交更改</button>
             </div>
         </div>
     </div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js"></script>
-<script>
-    (function () {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js"></script>
+    <script>
+        (function () {
 
-        editor = ace.edit("code");
+            var editor = ace.edit("code");
+            editor.setTheme("ace/theme/" + "clouds");
+            editor.session.setMode("ace/mode/" + "json");
+            editor.setFontSize(15);
+            editor.setReadOnly(false);
+            editor.setOption("wrap", "free");
+            ace.require("ace/ext/language_tools");
+            editor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true,
+                enableLiveAutocompletion: true,
+                autoScrollEditorIntoView: true
+            });
+        })();
 
-        //设置风格和语言（更多风格和语言，请到github上相应目录查看）
-        theme = "clouds";
-        language = "c_cpp";
-        editor.setTheme("ace/theme/" + theme);
-        editor.session.setMode("ace/mode/" + language);
 
-        //字体大小
-        editor.setFontSize(18);
+        var editor = null;
 
-        //设置只读（true时只读，用于展示代码）
-        editor.setReadOnly(false);
+        function collapse_api(id) {
 
-        //自动换行,设置为off关闭
-        editor.setOption("wrap", "free");
+            var element = $(id);
+            if (element.hasClass('collapse')) {
+                element.removeClass('collapse');
+                element.addClass('collapse.in')
+            } else {
+                element.removeClass('collapse.in');
+                element.addClass('collapse')
+            }
 
-        //启用提示菜单
-        ace.require("ace/ext/language_tools");
-        editor.setOptions({
-            enableBasicAutocompletion: true,
-            enableSnippets: true,
-            enableLiveAutocompletion: true
-        });
-    })();
-</script>
+        }
+
+        function init_acs(language, theme, editor) {
+            editor.setTheme("ace/theme/" + theme);
+            editor.session.setMode("ace/mode/" + language);
+            editor.setFontSize(15);
+            editor.setReadOnly(false);
+            editor.setOption("wrap", "free");
+            ace.require("ace/ext/language_tools");
+            editor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true,
+                enableLiveAutocompletion: true,
+                autoScrollEditorIntoView: true
+            });
+        }
+
+        function make_editor(id) {
+            editor = ace.edit(id);
+            init_acs('json', 'monokai', editor);
+        }
+    </script>
 </body>
 </html>

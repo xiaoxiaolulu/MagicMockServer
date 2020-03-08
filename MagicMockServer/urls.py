@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.urls import path, include
 
-from mock import views
+from apps.mock import views
 
 urlpatterns = [
-    path('mock/', include('mock.urls')),
+    path('mock/', include('apps.mock.urls')),
     path('<path:path>/', views.dispatch_request)
 ]

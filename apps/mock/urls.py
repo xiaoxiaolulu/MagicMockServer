@@ -1,5 +1,5 @@
 from django.urls import path
-from mock import views
+from apps.mock import views
 
 app_name = 'mock'
 

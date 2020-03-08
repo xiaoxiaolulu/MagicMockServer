@@ -26,7 +26,7 @@ NewProjects.prototype.listenAddProjectsEvent = function () {
             'success': function (result) {
                 if (result['message'] === "SUCCESS" ) {
                     window.location.reload();
-                    window.messageBox.showSuccess("评论发表成功！");
+                    window.messageBox.showSuccess("创建项目成功!");
                 } else {
                     window.messageBox.showError(result['message']);
                 }

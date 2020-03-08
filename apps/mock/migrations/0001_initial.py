@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=50, verbose_name='接口名称')),
                 ('url', models.CharField(max_length=100, unique=True, verbose_name='请求路由')),
                 ('body', models.TextField(verbose_name='请求体')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='mock.Project', verbose_name='关联项目')),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='apps.mock.Project', verbose_name='关联项目')),
             ],
             options={
                 'db_table': 'Api',

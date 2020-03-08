@@ -1,5 +1,5 @@
 from django import forms
-from mock.models import Project, Api
+from apps.mock.models import Project, Api
 
 
 class FormMixin(object):
@@ -27,7 +27,7 @@ class AddProjectsFrom(forms.ModelForm, FormMixin):
 
 class AddApiForm(forms.ModelForm, FormMixin):
 
-    pk = forms.IntegerField()
+    project_id = forms.IntegerField()
 
     class Meta:
         model = Api
