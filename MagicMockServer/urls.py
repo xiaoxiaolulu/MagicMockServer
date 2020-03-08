@@ -19,5 +19,6 @@ from apps.mock import views
 
 urlpatterns = [
     path('mock/', include('apps.mock.urls')),
+    path('auth/', include('apps.authorization.urls')),
     path('<path:path>/', views.dispatch_request)
 ]
